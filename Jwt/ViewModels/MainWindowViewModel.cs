@@ -38,6 +38,7 @@ namespace Jwt.ViewModels
         {
             try
             {
+                jwtInput = Strip(jwtInput);
                 var jwtHandler = new JwtSecurityTokenHandler();
 
                 //Check if readable token (string is in a JWT format)
@@ -65,10 +66,29 @@ namespace Jwt.ViewModels
                 var jwtPayload = "{";
                 foreach (var c in claims)
                 {
-                    if (c.Value.StartsWith("{"))
-                        jwtPayload += '"' + c.Type + "\":" + c.Value + ",";
+                    var value = c.Value;
+                    if (int.TryParse(value, out int ts))
+                    {
+                        var time = DateTimeOffset.FromUnixTimeSeconds(ts);
+                        value += $" ({time})";
+
+                        if (c.Type == "iat" && time > DateTimeOffset.Now)
+                        {
+                            value += " NOT VALID YET";
+                        }
+                        else if (c.Type == "nbf" && time > DateTimeOffset.Now)
+                        {
+                            value += " NOT VALID YET";
+                        }
+                        else if (c.Type == "exp" && time < DateTimeOffset.Now)
+                        {
+                            value += " EXPIRED";
+                        }
+                    }
+                    if (value.StartsWith("{"))
+                        jwtPayload += '"' + c.Type + "\":" + value + ",";
                     else
-                        jwtPayload += '"' + c.Type + "\":\"" + c.Value + "\",";
+                        jwtPayload += '"' + c.Type + "\":\"" + value + "\",";
                 }
                 jwtPayload += "}";
                 sb.Append("\r\nPayload:\r\n" + JToken.Parse(jwtPayload).ToString(Formatting.Indented));
@@ -78,6 +98,16 @@ namespace Jwt.ViewModels
             {
                 return e.Message;
             }
+        }
+
+        private string Strip(string jwtInput)
+        {
+            jwtInput = jwtInput.Trim(' ', '\t', '\r', '\n', '}', '{');
+            if (jwtInput.StartsWith("Bearer "))
+            {
+                jwtInput = jwtInput.Substring("Bearer ".Length);
+            }
+            return jwtInput;
         }
 
         public event PropertyChangedEventHandler PropertyChanged;

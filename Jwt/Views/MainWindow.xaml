@@ -4,6 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:viewmodels="clr-namespace:Jwt.ViewModels"
+        FocusManager.FocusedElement="{Binding ElementName=Input}"
         mc:Ignorable="d"
         Title="JWT Viewer" Height="450" Width="800">
     <Window.DataContext>
@@ -14,7 +15,7 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
-        <TextBox AcceptsReturn="True" Text="{Binding Input, UpdateSourceTrigger=PropertyChanged}" />
+        <TextBox AcceptsReturn="True" Text="{Binding Input, UpdateSourceTrigger=PropertyChanged}" x:Name="Input" />
         <TextBox AcceptsReturn="True" Text="{Binding Jwt}" IsReadOnly="True" IsReadOnlyCaretVisible="True" Grid.Row="1" />
     </Grid>
 </Window>
