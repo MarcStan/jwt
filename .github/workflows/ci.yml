@@ -12,4 +12,5 @@ jobs:
       with:
         nuget-version: 5.x
     - run: nuget restore
+    - uses: microsoft/setup-msbuild@fc16ae6170877cd889e5d735ea9d41c2362078b2 # pin@v1
     - run: msbuild /p:Configuration=Release
