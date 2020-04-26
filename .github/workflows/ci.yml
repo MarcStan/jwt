@@ -8,4 +8,8 @@ jobs:
     runs-on: windows-latest
     steps:
     - uses: actions/checkout@01aecccf739ca6ff86c0539fbc67a7a5007bbc81 # pin@v2
+    - uses: nuget/setup-nuget@255f46e14d51fbc603743e2aa2907954463fbeb9 # pin@v1.0.2
+      with:
+        nuget-version: 5.x
+    - run: nuget restore
     - run: msbuild /p:Configuration=Release
