@@ -1,8 +1,10 @@
 ﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.IdentityModel.Tokens.Jwt;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 
@@ -64,6 +66,7 @@ namespace Jwt.ViewModels
                 //Extract the payload of the JWT
                 var claims = token.Claims;
                 var jwtPayload = "{";
+                var claimMap = new Dictionary<string, List<string>>();
                 foreach (var c in claims)
                 {
                     var value = c.Value;
@@ -85,10 +88,24 @@ namespace Jwt.ViewModels
                             value += " EXPIRED";
                         }
                     }
-                    if (value.StartsWith("{"))
-                        jwtPayload += '"' + c.Type + "\":" + value + ",";
+                    if (!claimMap.ContainsKey(c.Type))
+                        claimMap.Add(c.Type, new List<string>());
+
+                    claimMap[c.Type].Add(value);
+                }
+                foreach (var pair in claimMap)
+                {
+                    var type = pair.Key;
+                    var values = pair.Value;
+                    if (values.Count == 1)
+                    {
+                        jwtPayload += '"' + type + "\":\"" + values[0] + "\",";
+                    }
                     else
-                        jwtPayload += '"' + c.Type + "\":\"" + value + "\",";
+                    {
+                        // same claim type might provide multiple values in separate claims (e.g. roles) -> merge into one
+                        jwtPayload += '"' + type + "\":[" + string.Join(", ", values.Select(v => $"\"{v}\"")) + "],";
+                    }
                 }
                 jwtPayload += "}";
                 sb.Append("\r\nPayload:\r\n" + JToken.Parse(jwtPayload).ToString(Formatting.Indented));
@@ -112,7 +129,7 @@ namespace Jwt.ViewModels
 
         public event PropertyChangedEventHandler PropertyChanged;
 
-        protected void OnPropertyChanged([CallerMemberName]string name = null)
+        protected void OnPropertyChanged([CallerMemberName] string name = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
         }
